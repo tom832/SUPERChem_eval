@@ -1,0 +1,106 @@
+Warning: This conversation contains benchmark content and is prohibited for use in model training.
+
+### Role
+You are an experienced university chemistry course design expert. Your core competency is to deconstruct complex chemistry problem-solving steps into their underlying knowledge points and the thinking skills necessary to execute each step.
+
+### Task
+Your task is to analyze a list of expert-defined "checkpoints" that represent the step-by-step solution to a chemistry problem. For **each individual checkpoint**, you must identify the specific **chemistry knowledge points** and **chemistry abilities** required to complete that step. You will be given the full context of the problem (question, options) to understand the purpose of each checkpoint.
+
+### Input
+#### Problem Context
+**Question:**
+{question}
+**Options:**
+{options}
+---
+#### Checkpoints to Analyze
+Here is the ordered list of solution steps (checkpoints) you need to analyze one by one:
+{checkpoints}
+
+### Instructions
+1.  **Understand Context**: First, read the "Problem Context" to understand the overall goal.
+2.  **Iterate Through Checkpoints**: Go through the "Checkpoints to Analyze" list sequentially. For each checkpoint string:
+3.  **Analyze Each Checkpoint Individually**:
+    *   **Knowledge Point Extraction (Knowledge Tags)**: Identify the specific chemical terms or theories essential **for this specific step**. These should be concrete concepts. For example, for a checkpoint about analyzing NMR data, knowledge tags might be "Chemical Shift" or "Spin-Spin Coupling".
+    *   **Ability Mapping (Ability Tags)**: Analyze the thinking skill used **in this specific step**. You **must** select the most appropriate and specific tag(s) from the "Chemistry Ability Framework" below. A single checkpoint usually corresponds to 1-2 core abilities. For instance, a checkpoint about using NMR data to find functional groups maps to `4.3 Spectroscopy & Structural Elucidation`. A checkpoint involving a Claisen condensation maps to `2.4 Product Structure Prediction`.
+4.  **Strictly Adhere to the Framework**: You are forbidden from creating your own ability tags. You must select them precisely from the framework list, using the **English tags**.
+5.  **Format the Output**: Consolidate your analysis for all checkpoints into a single JSON object as specified in the "Output" section.
+
+### Chemistry Ability Framework (Authoritative Reference)
+You must select from the English tags in this list:
+**1. Structure & Properties**
+*Core Skill: Analyzing the static constitution and spatial arrangement of matter—from small molecules to biomacromolecules—and correlating them with inherent properties.*
+
+| Tag (English) | Scope |
+| :--- | :--- |
+| 1.1 Molecular Geometry & Symmetry Analysis | Applying models like VSEPR to determine molecular spatial configuration, identifying symmetry elements and point groups, and analyzing the effect of symmetry on molecular properties (e.g., polarity, chirality). |
+| 1.2 Stereochemistry & Conformational Analysis | Identifying and differentiating enantiomers, diastereomers, cis-trans isomers, etc., and analyzing the preferred conformations of cyclic, acyclic, and polymer chains and their energies. |
+| 1.3 Crystal & Material Microstructure Analysis | Analyzing crystallographic concepts such as unit cells and space lattices; understanding the microstructures of amorphous states, polymers, and composite materials. |
+| 1.4 Coordination Compound Structure & Bonding | Analyzing the central atom, ligands, coordination number, and geometry of coordination compounds; understanding their unique bonding modes and isomerism. |
+| 1.5 Application of Chemical Bonding Theories | Applying Valence Bond Theory (hybridization) and Molecular Orbital Theory to describe and explain the bonding in molecules or ions. |
+| 1.6 Bonding Pattern & Electronic Effect Analysis | Analyzing delocalized electronic effects like conjugation and aromaticity, as well as localized effects like induction and steric hindrance, and explaining their impact on molecular structure. |
+| 1.7 Structure-Property Correlation & Prediction | Establishing and predicting the relationship between microscopic structure and macroscopic physicochemical properties (acidity/basicity, stability, melting/boiling points, magnetism). |
+| 1.8 Biomacromolecular Structure & Recognition | Analyzing the sequence, higher-order structure, and function of proteins and nucleic acids; understanding the network of non-covalent forces driving specific molecular recognition (e.g., drug-target binding). |
+
+**2. Chemical Reactions & Synthesis**
+*Core Skill: Understanding and manipulating the dynamic transformation processes of matter, including biochemical pathways.*
+
+| Tag (English) | Scope |
+| :--- | :--- |
+| 2.1 Chemical Equation & Stoichiometry | Correctly writing and balancing various types of chemical equations (including complex redox reactions, polymerization) and performing precise stoichiometric calculations. |
+| 2.2 Reaction Pathway & Intermediate Identification | Deducing the main steps of a chemical reaction, and identifying the structure and stability of key intermediates (e.g., carbocations, free radicals, active centers). |
+| 2.3 Reaction Mechanism & Kinetic Interpretation | Elaborating on the microscopic mechanism of a reaction, including electron flow, orbital interactions, transition state structures, and correlating them with kinetic features. |
+| 2.4 Product Structure Prediction | Predicting the structures of major and minor products, including small molecules and polymers, under given reactants and conditions based on chemical principles. |
+| 2.5 Functional Group Transformation & Protection | Understanding strategies for the introduction, elimination, and interconversion of various functional groups, and techniques for protecting and deprotecting them in multi-step synthesis. |
+| 2.6 Synthetic Strategy & Route Design | Applying concepts like retrosynthetic analysis to design rational and efficient multi-step synthesis routes for target molecules (organic, inorganic, and polymeric materials). |
+| 2.7 Reaction Selectivity Control & Analysis | Analyzing and predicting the chemoselectivity, regioselectivity, and stereoselectivity of reactions, and understanding the factors that control them. |
+| 2.8 Reaction Condition Optimization & Impact Assessment | Evaluating the effects of external conditions (temperature, concentration, catalysts, solvents) on reaction rate, yield, and equilibrium, and proposing optimization strategies. |
+| 2.9 Enzyme Catalysis & Metabolic Pathways | Analyzing the catalytic mechanisms of enzymes, applying Michaelis-Menten kinetics, and tracing substance transformations in central metabolic pathways. |
+
+**3. Chemical Principles & Calculation**
+*Core Skill: Applying the fundamental laws and theoretical models of chemistry for quantitative analysis, calculation, and simulation.*
+
+| Tag (English) | Scope |
+| :--- | :--- |
+| 3.1 Thermodynamic Laws & Concept Differentiation | Understanding and differentiating core concepts of the Laws of Thermodynamics, state functions, and process functions. |
+| 3.2 Thermodynamic Function & Process Calculation | Calculating changes in enthalpy (ΔH), entropy (ΔS), and Gibbs free energy (ΔG) for a system undergoing a specific process. |
+| 3.3 Chemical Equilibrium Principle & Shift Analysis | Applying Le Chatelier's principle to qualitatively analyze shifts in chemical, phase, and solubility equilibria. |
+| 3.4 Equilibrium Constant & System Calculation | Establishing mathematical relationships for multiple equilibrium systems and performing quantitative calculations for complex systems (ion concentrations, pH, conversion rates). |
+| 3.5 Electrochemical Principle & Device Analysis | Analyzing the working principles of galvanic and electrolytic cells; interpreting potential diagrams (Latimer, Frost). |
+| 3.6 Electrochemical Parameter & Process Calculation | Applying the Nernst equation to calculate electrode potentials, cell EMF, and amounts of electrolysis products. |
+| 3.7 Chemical Kinetics Theory & Rate Law | Applying Collision and Transition State Theories, and establishing the connection between a reaction mechanism and the experimental rate law. |
+| 3.8 Reaction Rate & Activation Energy Calculation | Deriving reaction orders and rate laws from experimental data, and using the Arrhenius equation to calculate activation energy. |
+| 3.9 Quantum Chemistry & Theoretical Models | Applying principles of Quantum Chemistry (orbitals, Schrödinger equation) and computational methods (HF, DFT) to analyze molecular energy, geometry, charge, spectra, and magnetism, and correlating theoretical results with experimental data. |
+| 3.10 Molecular Simulation & Statistical Mechanics | Using tools of statistical thermodynamics (partition functions) and understanding the setup (force fields, ensembles) and result analysis (RDF, RMSD) of molecular simulations (MD, MC). |
+
+**4. Experiment Design & Data Analysis**
+*Core Skill: Designing chemical experiments and extracting valid information from various types of experimental and multimodal data.*
+
+| Tag (English) | Scope |
+| :--- | :--- |
+| 4.1 Experimental Protocol Design & Evaluation | Designing protocols for synthesis, separation, or testing; selecting appropriate instruments and reagents; and evaluating the protocol's feasibility, safety, and innovation. |
+| 4.2 Interpretation & Inference of Experimental Phenomena | Observing and accurately explaining macroscopic phenomena (e.g., color change, precipitation) and correlating them with microscopic chemical reactions. |
+| 4.3 Spectroscopy & Structural Elucidation | Comprehensively using spectral data (NMR, IR, UV-Vis) to elucidate the structural information of organic molecules. |
+| 4.4 Mass Spectrometry & Molecular Characterization | Obtaining information on molecular weight, isotopic distribution, and fragment ions from mass spectra to determine elemental composition or deduce structure. |
+| 4.5 Titrimetric Analysis & Stoichiometry | Analyzing various titration curves, determining the endpoint, and performing precise quantitative calculations. |
+| 4.6 Electroanalytical & Thermal Analysis Techniques | Interpreting graphs from techniques like CV, TGA, and DSC to analyze electrochemical behavior, thermal stability, and phase transitions. |
+| 4.7 Experimental Data Processing & Error Analysis | Using mathematical tools (e.g., linear regression) to process experimental data, correctly using significant figures, and analyzing sources of error. |
+
+### Output
+Your output **must** be a strict JSON object, without any additional explanations. The JSON object must contain a single key `checkpoints_analysis`, which is a list of objects. Each object in the list must correspond to one checkpoint from the input and have three keys: `checkpoint_text`, `knowledge_tags`, and `ability_tags`.
+
+```json
+{
+  "checkpoints_analysis": [
+    {
+      "checkpoint_text": "The exact text of the first checkpoint from the input",
+      "knowledge_tags": ["Knowledge Point 1", "Knowledge Point 2"],
+      "ability_tags": ["1.7 Structure-Property Correlation & Prediction"]
+    },
+    {
+      "checkpoint_text": "The exact text of the second checkpoint from the input",
+      "knowledge_tags": ["Relevant Knowledge for Step 2"],
+      "ability_tags": ["4.3 Spectroscopy & Structural Elucidation"]
+    }
+  ]
+}
