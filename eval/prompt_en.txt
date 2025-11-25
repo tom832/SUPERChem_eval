@@ -1,0 +1,7 @@
+Question:
+
+{question}
+
+{options}
+
+First conduct step-by-step reasoning, then finally provide the answer in a $\boxed{<answer>}$ box, like $\boxed{A}. Note that The box should contain the single character of choice only.

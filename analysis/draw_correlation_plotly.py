@@ -1,6 +1,7 @@
 import os
 import json
 import glob
+import re
 from collections import defaultdict
 import pandas as pd
 import numpy as np
@@ -14,6 +15,10 @@ import plotly.colors as pcolors
 # ##############################################################################
 # Please set RESULTS_DIR to the directory where your .jsonl files are stored
 RESULTS_DIR = 'data/' 
+
+# [NEW] Path to the original questions file (required for extracting weights)
+# Supports .parquet or .jsonl formats
+QUESTIONS_FILE_PATH = 'data/20251014164938_questions.parquet'
 
 # Contains all models to be analyzed
 KNOWN_MODELS = [
@@ -44,6 +49,66 @@ SPLIT_MAP_FILE = 'data/dataset_split_map.json'
 # ##############################################################################
 # 2. Data Processing Functions (Completely Unchanged)
 # ##############################################################################
+
+def extract_weights_from_explanation(text):
+    """
+    Extracts Checkpoint weights from the explanation text.
+    Example format: <Checkpoint>[Content](1)</Checkpoint> or <Checkpoint>[Content](0.5)</Checkpoint>
+    """
+    if not text:
+        return []
+    # Regex logic:
+    # <Checkpoint>
+    # \[.*?\]   -> Match content inside brackets (non-greedy)
+    # \s*       -> Allow optional whitespace
+    # \(        -> Literal opening parenthesis
+    # (\d+(?:\.\d+)?) -> Capture group for an integer or a float (e.g., 1 or 0.5)
+    # \)        -> Literal closing parenthesis
+    # \s*       -> Allow optional whitespace
+    # </Checkpoint>
+    pattern = r'<Checkpoint>\[.*?\]\s*\((\d+(?:\.\d+)?)\)\s*</Checkpoint>'
+    matches = re.findall(pattern, text, re.DOTALL)
+    
+    try:
+        weights = [float(w) for w in matches]
+    except ValueError:
+        print(f"Warning: Failed to parse weights in text snippet: {text[:50]}...")
+        weights = []
+    return weights
+
+def load_question_weights(filepath):
+    """
+    Loads the original questions file and creates a map from uuid to a list of weights.
+    """
+    print(f"Loading question weights from {filepath}...")
+    if not os.path.exists(filepath):
+        print(f"Error: Questions file not found at '{filepath}'. Cannot calculate weighted RPF.")
+        return {}
+        
+    if filepath.endswith('.parquet'):
+        df = pd.read_parquet(filepath)
+    elif filepath.endswith('.jsonl'):
+        df = pd.read_json(filepath, lines=True)
+    else:
+        print("Error: QUESTIONS_FILE_PATH must be a .parquet or .jsonl file.")
+        return {}
+    
+    uuid_weights_map = {}
+    col_name = 'explanation_en'  # Assumes English explanations contain the weights
+    
+    if col_name not in df.columns:
+        print(f"Error: Column '{col_name}' not found in dataset. Available columns: {df.columns}")
+        return {}
+
+    for _, row in df.iterrows():
+        uuid = row['uuid']
+        explanation = row[col_name]
+        weights = extract_weights_from_explanation(explanation)
+        if weights:
+            uuid_weights_map[uuid] = weights
+            
+    print(f"Loaded weights for {len(uuid_weights_map)} questions.")
+    return uuid_weights_map
 
 def parse_filename(filename, known_models):
     basename = os.path.basename(filename)
@@ -101,29 +166,81 @@ def process_data_files(files, known_models, split_map_file):
             accuracies.append({'Model': model_name, 'Input Type': input_type, 'Accuracy': acc_first_trial})
     return pd.DataFrame(accuracies)
 
-def calculate_rpf(files, known_models, split_map_file):
+def calculate_rpf_weighted(files, known_models, split_map_file, uuid_weights_map):
+    """
+    Calculates the weighted Reasoning Path Fidelity (RPF) score.
+    This relies on both the evaluation results and the weights extracted from the original questions.
+    """
     try:
         with open(split_map_file, 'r', encoding='utf-8') as f:
             valid_uuids = {uuid for uuid, data in json.load(f).items() if data.get('split') in ['release', 'holdout']}
     except FileNotFoundError:
         print(f"Error: '{split_map_file}' not found. Cannot calculate RPF."); return pd.DataFrame()
+        
     rpf_data = defaultdict(list)
+    
     for filepath in files:
         if '_EVAL_BY_' not in filepath: continue
         model_name, multimodal, _ = parse_filename(filepath, known_models)
         if not model_name: continue
         key = (model_name, 'Multimodal' if multimodal else 'Text-Only')
+        
         with open(filepath, 'r', encoding='utf-8') as f:
             for line in f:
                 try:
                     record = json.loads(line)
-                    if record['uuid'] in valid_uuids and record.get('total_checkpoints', 0) > 0:
-                        rpf_data[key].append((record.get('matched_checkpoints', 0) / record['total_checkpoints']) * 100)
-                except (json.JSONDecodeError, KeyError): continue
+                    uuid = record['uuid']
+                    
+                    if uuid not in valid_uuids:
+                        continue
+                        
+                    # 1. Get the list of weights for this question
+                    weights = uuid_weights_map.get(uuid, [])
+                    if not weights:
+                        # Fallback to unweighted calculation if no weights are found
+                        if record.get('total_checkpoints', 0) > 0:
+                            rpf = (record.get('matched_checkpoints', 0) / record['total_checkpoints'])
+                            rpf_data[key].append(rpf * 100)
+                        continue
+
+                    # 2. Get the evaluation details (list of True/False)
+                    # Note: 'evaluation_details' must exist in your JSONL result files
+                    eval_details = record.get('evaluation_details', [])
+                    if not eval_details:
+                        # Cannot perform weighted calculation without details
+                        continue
+                        
+                    # 3. Extract the match status
+                    matches = [item.get('is_matched', False) for item in eval_details]
+                    
+                    # 4. Validate lengths
+                    if len(weights) != len(matches):
+                        # If lengths mismatch (e.g., LLM hallucinated extra steps),
+                        # use the minimum length for a conservative calculation.
+                        min_len = min(len(weights), len(matches))
+                        weights = weights[:min_len]
+                        matches = matches[:min_len]
+                    
+                    # 5. Calculate the weighted score
+                    # Numerator: sum(weight_i * 1 if matched else 0)
+                    # Denominator: sum(all_weights)
+                    total_weight = sum(weights)
+                    if total_weight == 0:
+                        rpf_score = 0
+                    else:
+                        earned_weight = sum(w for w, m in zip(weights, matches) if m)
+                        rpf_score = (earned_weight / total_weight) * 100
+                    
+                    rpf_data[key].append(rpf_score)
+                    
+                except (json.JSONDecodeError, KeyError): 
+                    continue
+                    
     avg_rpf = []
     for (model_name, input_type), scores in rpf_data.items():
         if scores:
             avg_rpf.append({'Model': model_name, 'Input Type': input_type, 'RPF': np.mean(scores)})
+            
     return pd.DataFrame(avg_rpf)
 
 def merge_and_prioritize_data(accuracy_df, rpf_df):
@@ -227,11 +344,16 @@ if __name__ == "__main__":
     if not all_files:
         print(f"No .jsonl files found in the directory: '{RESULTS_DIR}'"); exit()
 
-    print("Step 1: Calculating pass@1 accuracies...")
+    print("Step 0: Loading question weights...")
+    uuid_weights_map = load_question_weights(QUESTIONS_FILE_PATH)
+    if not uuid_weights_map:
+        print("Could not load question weights. Weighted RPF calculation will be skipped or will fallback to unweighted.");
+
+    print("\nStep 1: Calculating pass@1 accuracies...")
     accuracy_df = process_data_files(all_files, KNOWN_MODELS, SPLIT_MAP_FILE)
     
-    print("\nStep 2: Calculating mean Reasoning Path Fidelity (RPF)...")
-    rpf_df = calculate_rpf(all_files, KNOWN_MODELS, SPLIT_MAP_FILE)
+    print("\nStep 2: Calculating WEIGHTED Reasoning Path Fidelity (RPF)...")
+    rpf_df = calculate_rpf_weighted(all_files, KNOWN_MODELS, SPLIT_MAP_FILE, uuid_weights_map)
     
     if accuracy_df is not None and not rpf_df.empty:
         print("\nStep 3: Merging data and prioritizing multimodal results...")
