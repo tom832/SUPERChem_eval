@@ -29,3 +29,6 @@ This script visualizes the distribution of different "ability tags" across the e
 
 ### `draw_radar_plotly.py`
 This script generates a radar chart to compare the capabilities of several state-of-the-art (SOTA) models across a range of defined abilities. Each axis of the radar chart represents a different ability tag, and the plot shows the relative strengths and weaknesses of each model in a single, comparative visualization.
+
+### `generate_pdf.py`
+This script generates PDF files from the question dataset stored in Parquet format. It formats the questions and associated images into a printable PDF document, which can be useful for offline review or human evaluation.

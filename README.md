@@ -1,4 +1,10 @@
+<div align="center">
+
 # SUPERChem: A Multimodal Reasoning Benchmark in Chemistry
+
+🌐 [Website](https://superchem.pku.edu.cn) | 📄 [Paper](https://arxiv.org/abs/2512.01274) | 🤗 [Dataset](https://huggingface.co/datasets/ZehuaZhao/SUPERChem)
+
+</div>
 
 This repository contains the official evaluation framework for **SUPERChem**, an expert-curated, reasoning-intensive multimodal benchmark for the rigorous evaluation of deep chemical reasoning in Large Language Models (LLMs) and Multimodal LLMs (MLLMs).
 
@@ -73,10 +79,13 @@ A typical evaluation workflow follows these steps:
 If you use SUPERChem or this evaluation framework in your research, please cite our paper:
 
 ```bibtex
-@article{superchem2025,
-  title={{SUPERChem: A Multimodal Reasoning Benchmark in Chemistry}},
-  author={Zehua Zhao, Zhixian Huang, Junren Li, Siyu Lin, Junting Zhou, Fengqi Cao, Kun Zhou, Rui Ge, Yuexiang Zhu, Yan Liu, Jie Zheng, Junnian Wei, Rong Zhu, Peng Zou, Wenyu Li, Zekai Cheng, Tian Ding, Yaxuan Wang, Yizhao Yan, Tingru Wei, Haowei Ming, Weijie Mao, Chen Sun, Yiming Liu, Zichen Wang, Zuo Zhang, Tong Yang, Hao Ma, Zhen Gao and Jian Pei},
-  journal={Journal/Conference Name},
-  year={2025}
+@misc{zhao2025superchemmultimodalreasoningbenchmark,
+      title={SUPERChem: A Multimodal Reasoning Benchmark in Chemistry}, 
+      author={Zehua Zhao and Zhixian Huang and Junren Li and Siyu Lin and Junting Zhou and Fengqi Cao and Kun Zhou and Rui Ge and Tingting Long and Yuexiang Zhu and Yan Liu and Jie Zheng and Junnian Wei and Rong Zhu and Peng Zou and Wenyu Li and Zekai Cheng and Tian Ding and Yaxuan Wang and Yizhao Yan and Tingru Wei and Haowei Ming and Weijie Mao and Chen Sun and Yiming Liu and Zichen Wang and Zuo Zhang and Tong Yang and Hao Ma and Zhen Gao and Jian Pei},
+      year={2025},
+      eprint={2512.01274},
+      archivePrefix={arXiv},
+      primaryClass={cs.CL},
+      url={https://arxiv.org/abs/2512.01274}, 
 }
 ```
