@@ -57,7 +57,7 @@ This repository provides the tools to run evaluations on the SUPERChem dataset.
 
 ## Python Dependencies
 ```
-pip install pandas pyarrow loguru openai pyyaml tqdm plotly playwright scipy seaborn Pillow
+pip install pandas pyarrow loguru openai pyyaml tqdm plotly playwright scipy seaborn Pillow streamlit ipykernel
 ```
 
 ## Evaluation Workflow
