@@ -3,4 +3,8 @@ config.yaml
 data/*.jsonl
 view/data
 
+# dev and analysis scripts
+stats.ipynb
+align_data.ipynb
+
 .DS_Store
